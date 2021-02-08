@@ -1,4 +1,5 @@
 #include <SoftwareSerial.h>
+#include <CD74HC4067.h>
 
 /*
  * RFID Data Frame:
@@ -11,11 +12,14 @@
 const int BUFFER_SIZE = 14;
 
 SoftwareSerial rfid_serial = SoftwareSerial(3,4);
+CD74HC4067 mux(7, 8, 9, 10);
 
 /*
  * The buffer storing data from the RFID serial connection.
  */
 uint8_t buffer[BUFFER_SIZE];
+
+int CHANNEL = 0;
 
 
 /*
@@ -28,6 +32,8 @@ void setup() {
 
 	rfid_serial.begin(9600);
 	rfid_serial.listen();
+
+	mux.channel(0);
 
 	Serial.println("Initializing Serial Connections");
 }
@@ -54,7 +60,18 @@ void loop() {
 		buffer_index++;
 
 		if (rfid_char == 3) {
+			Serial.println(CHANNEL);
 			Serial.println(decode_tag());
+
+			if (CHANNEL == 0) {
+				mux.channel(1);
+
+				CHANNEL = 1;
+			} else {
+				mux.channel(0);
+
+				CHANNEL = 0;
+			}
 		}
 	}
 }
