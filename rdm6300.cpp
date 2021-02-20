@@ -1,35 +1,46 @@
 #include "rdm6300.h"
 #include <Stream.h>
+#include <arduino-timer.h>
 
-RDM6300::RDM6300(Stream *stream) {
+RDM6300::RDM6300(Stream *stream, Timer<> *timer) : RFIDReader(timer) {
 	this->stream = stream;
 }
 
 unsigned long RDM6300::read() {
-	while (stream->available() < 10) {
-		while (true) {
-			int rfid_char = stream->read();
+	startTimer();
 
-			if (rfid_char == -1) {
-				continue;
-			}
+	while (hasTimedOut() == false) {
+		tick();
 
-			if (rfid_char == 2) {
-				buffer_index = 0;
-			}
+		if (stream->available() < 10) {
+			continue;
+		}
 
-			if (buffer_index >= BUFFER_SIZE) {
-				continue;
-			}
+		int rfid_char = stream->read();
 
-			buffer[buffer_index] = rfid_char;
-			buffer_index++;
+		if (rfid_char == -1) {
+			continue;
+		}
 
-			if (rfid_char == 3) {
-				return decode_tag();
-			}
+		if (rfid_char == 2) {
+			buffer_index = 0;
+		}
+
+		if (buffer_index >= BUFFER_SIZE) {
+			continue;
+		}
+
+		buffer[buffer_index] = rfid_char;
+		buffer_index++;
+
+		if (rfid_char == 3) {
+			resetTimer();
+
+			return decode_tag();
 		}
 	}
+
+	resetTimer();
 
 	return 0;
 }

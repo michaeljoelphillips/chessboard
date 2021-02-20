@@ -1,9 +1,10 @@
 #include "rfid_reader.h"
 #include <Stream.h>
+#include <arduino-timer.h>
 
 class RDM6300: public RFIDReader {
 	public:
-		RDM6300(Stream *stream);
+		RDM6300(Stream *stream, Timer<> *timer);
 		unsigned long read();
 
 	private:
@@ -28,7 +29,8 @@ class RDM6300: public RFIDReader {
 		int buffer_index = 0;
 
 		Stream *stream;
+		Timer<> timer;
 
-		unsigned long decode_tag();
 		bool verify_checksum();
+		unsigned long decode_tag();
 };
