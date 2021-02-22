@@ -9,12 +9,9 @@ RDM6300::RDM6300(Stream *stream, Timer<> *timer) : RFIDReader(timer) {
 unsigned long RDM6300::read() {
 	startTimer();
 
+	unsigned long tag = 0;
 	while (hasTimedOut() == false) {
 		tick();
-
-		if (stream->available() < 10) {
-			continue;
-		}
 
 		int rfid_char = stream->read();
 
@@ -34,15 +31,15 @@ unsigned long RDM6300::read() {
 		buffer_index++;
 
 		if (rfid_char == 3) {
-			resetTimer();
+			tag = decode_tag();
 
-			return decode_tag();
+			break;
 		}
 	}
 
 	resetTimer();
 
-	return 0;
+	return tag;
 }
 
 unsigned long RDM6300::decode_tag() {
