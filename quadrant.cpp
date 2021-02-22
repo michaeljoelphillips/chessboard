@@ -15,7 +15,7 @@ class Quadrant {
 		}
 
 		void read() {
-			for (int i = 0; i < 16; i++) {
+			for (int i = 10; i < 16; i++) {
 				mux->select(i);
 
 				squares[i] = reader->read();
