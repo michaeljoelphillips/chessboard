@@ -29,7 +29,7 @@ Multiplexer *mux = new DualMultiplexer(
 
 Quadrant *quadrant0 = new Quadrant(mux, rfid);
 
-const long pieces[4][2] = {
+const long pieceMap[4][2] = {
 	{1710404, 1},
 	{2176689, 2},
 	{3705097, 3},
@@ -48,23 +48,29 @@ void setup() {
 void loop() {
 	quadrant0->read();
 
-	long *squares = quadrant0->getSquares();
+	transmitPosition(quadrant0->getSquares());
+}
 
+void transmitPosition(long *squares) {
 	for (int i = 10; i < 16; i++) {
 		long tag = *(squares + i);
-		int pieceValue = 0;
-
-		for (int j = 0; j < 4; j++) {
-			if (pieces[j][0] == tag) {
-				pieceValue = pieces[j][1];
-			}
-		}
+		long pieceValue = getPieceValueForTag(tag);
 
 		char serialOutput[50];
-		sprintf(serialOutput, "%d: %d %ld", i, pieceValue, tag);
+		sprintf(serialOutput, "%d: %ld %ld", i, pieceValue, tag);
 
 		Serial.println(serialOutput);
 	}
 
 	delay(750);
+}
+
+long getPieceValueForTag(long tag) {
+	for (int j = 0; j < 4; j++) {
+		if (pieceMap[j][0] == tag) {
+			return pieceMap[j][1];
+		}
+	}
+
+	return 0;
 }
